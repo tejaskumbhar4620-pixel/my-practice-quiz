@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Practice Quiz (60 Questions)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .stats { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; background: #e8f4fd; padding: 10px; border-radius: 8px; }
+        .question-box { display: none; margin-top: 20px; }
+        .question-box.active { display: block; }
+        .question-text { font-size: 1.2em; margin-bottom: 20px; font-weight: 600; }
+        .option { display: block; width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.3s; text-align: left; background: #fff; font-size: 1em; }
+        .option:hover { background-color: #f0f0f0; border-color: #3498db; }
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
+        .wrong { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+        .controls { margin-top: 30px; display: flex; justify-content: space-between; }
+        button { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1em; }
+        .btn-next { background-color: #3498db; color: white; }
+        .btn-next:disabled { background-color: #ccc; cursor: not-allowed; }
+        #result-screen { display: none; text-align: center; }
+        .score-big { font-size: 3em; color: #3498db; margin: 20px 0; }
+        .hint { font-size: 0.9em; color: #666; font-style: italic; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Management Exam Prep</h1>
+    
+    <div id="quiz-area">
+        <div class="stats">
+            <span>Question: <span id="current-idx">1</span> / 60</span>
+            <span>Score: <span id="score">0</span></span>
+        </div>
+
+        <div id="question-container">
+            <p class="question-text" id="q-text"></p>
+            <div id="options-list"></div>
+            <span id="hint-text" class="hint"></span>
+        </div>
+
+        <div class="controls">
+            <button id="next-btn" class="btn-next" onclick="nextQuestion()" disabled>Next Question</button>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <h2>Quiz Completed!</h2>
+        <p>Your Final Score:</p>
+        <div class="score-big"><span id="final-score">0</span> / 60</div>
+        <button class="btn-next" onclick="location.reload()">Restart Quiz</button>
+    </div>
+</div>
+
+<script>
+    const rawData = [
+        { q: "The function of management that involves setting goals and deciding on future actions is?", a: ["Planning", "Organizing", "Leading", "Controlling"], c: 0 },
+        { q: "The primary objective of management in an organization is to achieve?", a: ["Business goals efficiently", "Employee promotions", "Higher salaries for managers", "Product discounts for customers"], c: 0 },
+        { q: "Which principle suggests employees should report to only one superior?", a: ["Unity of Command", "Unity of Direction", "Scalar Chain", "Centralization"], c: 0 },
+        { q: "In the Six Thinking Hats technique, which hat represents creativity?", a: ["Green Hat", "Black Hat", "White Hat", "Red Hat"], c: 0 },
+        { q: "What does 'S' stand for in SMART goals?", a: ["Specific", "Smart", "Speed", "Supportive"], c: 0 },
+        { q: "The 'Black Hat' in Six Thinking Hats is used for?", a: ["Identifying risks and weaknesses", "Generating ideas", "Optimism", "Emotions"], c: 0 },
+        { q: "Which level of management interacts directly with the workforce?", a: ["Lower Level", "Middle Level", "Top Level", "Strategic Level"], c: 0 },
+        { q: "The final stage of the New Product Development (NPD) process is?", a: ["Commercialization", "Product Testing", "Idea Screening", "Business Analysis"], c: 0 },
+        { q: "Which principle promotes team spirit and unity?", a: ["Esprit de Corps", "Remuneration", "Initiative", "Scalar Chain"], c: 0 },
+        { q: "Scientific Management was introduced by?", a: ["F.W. Taylor", "Henri Fayol", "Kurt Lewin", "Peter Drucker"], c: 0 },
+        { q: "A working prototype is developed at which stage of NPD?", a: ["Product Development", "Idea Screening", "Concept Development", "Business Analysis"], c: 0 },
+        { q: "Which hat represents facts and data?", a: ["White Hat", "Red Hat", "Green Hat", "Yellow Hat"], c: 1 },
+        { q: "The 'cradle-to-cradle' concept refers to?", a: ["Fully recyclable/reusable products", "Reducing costs", "Disposal in landfills", "Product failure"], c: 0 },
+        { q: "In ADKAR, 'D' stands for?", a: ["Desire", "Development", "Direction", "Decision"], c: 0 },
+        { q: "The ability to control impulses and stay committed is?", a: ["Self-discipline", "Time management", "Self-motivation", "Stress management"], c: 0 },
+        { q: "Which technique uses a matrix of parameters to find solutions?", a: ["Morphological Analysis", "Brainstorming", "Reverse Brainstorming", "Checklist"], c: 0 },
+        { q: "Which level of management is responsible for company-wide vision?", a: ["Top Level", "Middle Level", "Lower Level", "Technical Level"], c: 0 },
+        { q: "Management is relevant across all industries. This is called?", a: ["Universal Application", "Workforce specialization", "Profit maximization", "Limited adaptability"], c: 0 },
+        { q: "The 'Yellow Hat' focuses on?", a: ["Optimism and benefits", "Risks", "Creativity", "Feelings"], c: 0 },
+        { q: "Kurt Lewin's change model stages are?", a: ["Unfreeze, Change, Refreeze", "Plan, Do, Check", "Start, Middle, End", "Freeze, Melt, Refreeze"], c: 0 },
+        { q: "Extended Producer Responsibility (EPR) makes manufacturers responsible for?", a: ["Product disposal/recycling", "Marketing", "Employee wages", "Customer complaints"], c: 0 },
+        { q: "Which function monitors performance against plans?", a: ["Controlling", "Organizing", "Planning", "Leading"], c: 0 },
+        { q: "What is the primary goal of Change Management?", a: ["Smooth transition with minimal resistance", "Eliminating change", "Reducing employee input", "Resisting market trends"], c: 0 },
+        { q: "Which creativity tool identifies ways to *create* a problem first?", a: ["Reverse Brainstorming", "Mind Mapping", "Checklist", "SCAMPER"], c: 0 },
+        { q: "The process of managing disputes fairly is?", a: ["Conflict Resolution", "Negotiation", "Feedback", "Leadership"], c: 0 },
+        { q: "Sustainable design aims to balance environment and...?", a: ["Profitability", "Complexity", "Packaging", "Speed"], c: 0 },
+        { q: "Which principle says 'one head and one plan' for a group objective?", a: ["Unity of Direction", "Unity of Command", "Division of Work", "Equity"], c: 0 },
+        { q: "Multitasking usually results in?", a: ["Mental fatigue and errors", "High efficiency", "Better focus", "Faster completion"], c: 0 },
+        { q: "Product Lifecycle stages include?", a: ["Intro, Growth, Maturity, Decline", "Idea, Build, Sell, Close", "Start, Profit, Loss, End", "Planning, Testing, Launch"], c: 0 },
+        { q: "In the SMART framework, 'R' stands for?", a: ["Relevant", "Rapid", "Rigid", "Resourceful"], c: 0 },
+        { q: "Who is the 'CEO of the product'?", a: ["Product Manager", "Production Supervisor", "Sales Executive", "Accountant"], c: 0 },
+        { q: "Self-motivation is essential for?", a: ["Staying driven toward goals", "Setting easy goals", "Avoiding work", "Following orders"], c: 0 },
+        { q: "Test Marketing involves?", a: ["Trial run in a limited area", "Large scale launch", "Initial idea screening", "Engineering design"], c: 0 },
+        { q: "Which principle replaces 'Rule of Thumb' with logic?", a: ["Science, Not Rule of Thumb", "Harmony, Not Discord", "Remuneration", "Equity"], c: 0 },
+        { q: "LCA stands for?", a: ["Life Cycle Assessment", "Level Cost Analysis", "Lead Control Action", "Late Change Assessment"], c: 0 },
+        { q: "Eco-design integrates environment into...?", a: ["Every stage of lifecycle", "Marketing only", "Packaging only", "Disposal only"], c: 0 },
+        { q: "In the Six Thinking Hats, 'Red Hat' is?", a: ["Emotions and intuition", "Logic", "Caution", "Management"], c: 0 },
+        { q: "Assigning tasks based on capability is which principle?", a: ["Development of Workers", "Scalar Chain", "Centralization", "Stability of Tenure"], c: 0 },
+        { q: "Scalar Chain refers to?", a: ["Formal line of authority", "Pay scale", "Supply chain", "Tool storage"], c: 0 },
+        { q: "The 'Blue Hat' is for?", a: ["Process Control / Management", "Creativity", "Facts", "Negatives"], c: 0 },
+        { q: "Which is NOT a source of new product ideas?", a: ["Employee layoffs", "Customers", "Competitors", "Regulations"], c: 0 },
+        { q: "Managing your time, stress, and goals is part of?", a: ["Self-Management", "Top Management", "Crisis Management", "Financial Management"], c: 0 },
+        { q: "Resistance to change is often caused by?", a: ["Fear of unknown", "High trust", "Clear communication", "Low workload"], c: 0 },
+        { q: "The 'A' in ADKAR stands for?", a: ["Awareness", "Action", "Ability", "Accountability"], c: 0 },
+        { q: "Negotiation aims for?", a: ["Satisfying all parties", "Winning at all costs", "Avoiding talk", "Losing slightly"], c: 0 },
+        { q: "Which level acts as a link between top and lower levels?", a: ["Middle Level", "Owner Level", "Staff Level", "Operational Level"], c: 0 },
+        { q: "Work-life balance includes time for?", a: ["Work, family, health, leisure", "Office work only", "Only family", "Only sleep"], c: 0 },
+        { q: "A 'Change Agent' is someone who?", a: ["Supports and leads change", "Blocks change", "Informally gossips", "Only watches change"], c: 0 },
+        { q: "SCAMPER is a type of...?", a: ["Checklist technique", "Financial tool", "Hiring process", "Legal framework"], c: 0 },
+        { q: "Sustainable products should prioritize?", a: ["Durability and recyclability", "Packaging volume", "Low quality", "One-time use"], c: 0 },
+        { q: "Management is an 'Art' because it requires?", a: ["Personal skill and practice", "Mathematical formulas", "Physical strength", "Only reading books"], c: 0 },
+        { q: "The principle of 'Equity' means?", a: ["Kindness and justice to workers", "Equal pay for unequal work", "Owning company shares", "Giving no feedback"], c: 0 },
+        { q: "In SMART, 'T' stands for?", a: ["Time-bound", "Total", "Technical", "Temporary"], c: 0 },
+        { q: "Which is a risk in NPD?", a: ["Market rejection", "High profit", "Low cost", "Employee happiness"], c: 0 },
+        { q: "Standardizing tools and work methods is a part of?", a: ["Scientific Management", "Human Relations", "Modern Art", "Self-help"], c: 0 },
+        { q: "A grievance of a worker is first handled by?", a: ["Lower Level Management", "CEO", "Board", "Customer"], c: 0 },
+        { q: "Which hat looks for the 'silver lining' or benefits?", a: ["Yellow Hat", "Black Hat", "White Hat", "Green Hat"], c: 0 },
+        { q: "Planned obsolescence is...?", a: ["Designing products to fail", "Sustainable design", "Good for environment", "A recycling plan"], c: 0 },
+        { q: "The ADKAR model's 'K' stands for?", a: ["Knowledge", "Kindness", "Key", "Kinetic"], c: 0 },
+        { q: "Stability of Tenure means?", a: ["Giving employees time to settle", "Frequent firing", "Changing jobs daily", "Low wages"], c: 0 }
+    ];
+
+    let questions = [];
+    let currentIdx = 0;
+    let score = 0;
+    let answered = false;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function initQuiz() {
+        questions = [...rawData];
+        shuffle(questions);
+        questions.forEach(q => {
+            let correctAns = q.a[q.c];
+            shuffle(q.a);
+            q.c = q.a.indexOf(correctAns);
+        });
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        document.getElementById('next-btn').disabled = true;
+        const q = questions[currentIdx];
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('current-idx').innerText = currentIdx + 1;
+        
+        const list = document.getElementById('options-list');
+        list.innerHTML = '';
+        
+        q.a.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i, btn);
+            list.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIdx, btn) {
+        if (answered) return;
+        answered = true;
+        const q = questions[currentIdx];
+        const options = document.getElementsByClassName('option');
+
+        if (selectedIdx === q.c) {
+            btn.classList.add('correct');
+            score++;
+            document.getElementById('score').innerText = score;
+        } else {
+            btn.classList.add('wrong');
+            options[q.c].classList.add('correct');
+        }
+        document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < questions.length) {
+            showQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-area').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = score;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
